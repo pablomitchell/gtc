@@ -22,6 +22,12 @@ TOKEN_FILE = 'token.pickle'
 
 def build_service():
     """Instantiates a valid gmail service object
+
+    Create OAuth credentials file from the google console:
+
+        https://console.developers.google.com/apis/credentials
+
+    Store the credentials json SECRETS_FILE in the current path
     """
     creds = None
 
