@@ -1,6 +1,7 @@
 import base64
 import csv
 import email
+#import html
 import os.path
 import pickle
 from apiclient import errors
@@ -98,7 +99,7 @@ def read_message(service, msg_id):
     :param msg_id:  string uniquely identifying message
     :return:  dictionary with keys 'subject', 'date', 'message'
     """
-    temp_dict = {}
+    out = {}
 
     try:
         message = service.users().messages().get(
@@ -110,18 +111,20 @@ def read_message(service, msg_id):
 
         for header in headers:
             if header['name'] == 'Subject':
-                temp_dict['subject'] = header['value']
+                out['subject'] = header['value']
             elif header['name'] == 'Date':
-                temp_dict['date'] = header['value']
+                out['date'] = header['value']
 
         data = message['payload']['parts'][0]['body']['data']
-        data_utf8 = base64.urlsafe_b64decode(data).decode('utf-8')
-        temp_dict['message'] = email.message_from_string(data_utf8)
+        data = base64.urlsafe_b64decode(data).decode('utf-8')
+        data = email.message_from_string(data)
+        #data = html.unescape(data)
+        out['message'] = data
     except Exception as e:
         print(e)
-        temp_dict = {}
+        out = {}
     finally:
-        return temp_dict
+        return out
 
 
 def write_messages(service, messages, csvfile):
