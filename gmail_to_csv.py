@@ -58,13 +58,20 @@ def build_service():
 def list_messages(service, query=None):
     """Gets a list of messages
 
-    :param service:  authorized Gmail API service instance
-    :param query:  string used to filter messages returned
-            Eg.- 'label:UNREAD' for unread Messages only
-            Search operators:  https://support.google.com/mail/answer/7190
-    :return:  List of messages that match the criteria of the query.
+    Parameters
+    ----------
+    service:  authorized Gmail API service instance
+    query:  string used to filter messages returned
+        Eg.- 'label:UNREAD' for unread Messages only
+        Search operators:  https://support.google.com/mail/answer/7190
+
+    Returns
+    -------
+    messages : list
+        List of messages that match the criteria of the query.
         Note that the returned list contains Message IDs--you must use
         get with the appropriate id to get the details of a Message
+
     """
     try:
         response = service.users().messages().list(
@@ -93,13 +100,20 @@ def list_messages(service, query=None):
 
 
 def read_message(service, msg_id):
-    """Read a message
+    """Read a message and output a dictionary summary
 
-    :param service:  authorized Gmail API service instance
-    :param msg_id:  string uniquely identifying message
-    :return:  dictionary with keys 'subject', 'date', 'message'
+    Parameters
+    ----------
+    service:  authorized Gmail API service instance
+    msg_id:  string uniquely identifying message
+
+    Returns
+    -------
+    summary :  dict
+        'subject', 'date', 'message'
+
     """
-    out = {}
+    summary = {}
 
     try:
         message = service.users().messages().get(
@@ -111,30 +125,33 @@ def read_message(service, msg_id):
 
         for header in headers:
             if header['name'] == 'Subject':
-                out['subject'] = header['value']
+                summary['subject'] = header['value']
             elif header['name'] == 'Date':
-                out['date'] = header['value']
+                summary['date'] = header['value']
 
         data = message['payload']['parts'][0]['body']['data']
         data = base64.urlsafe_b64decode(data).decode('utf-8')
         data = email.message_from_string(data)
         #data = html.unescape(data)
-        out['message'] = data
+        summary['message'] = data
     except Exception as e:
         print(e)
-        out = {}
+        summary = {}
     finally:
-        return out
+        return summary
 
 
 def write_messages(service, messages, csvfile):
     """Write a list of messages to CSV file
 
-    :param service:  authorized Gmail API service instance.
-    :param messages:  list of Message IDs--you must use get with
-        the appropriate id to get the details of a Message.
-    :param csvfile:  string indicating path/name to CSV file.
-    :return:  None
+    Parameters
+    ----------
+    service:  authorized Gmail API service instance.
+    messages:  list
+        Message IDs -- use `get` with the appropriate id
+        to get the details of a Message.
+    csvfile:  string indicating path/name to CSV file.
+
     """
     with open(csvfile, 'w', encoding='utf-8') as f:
         fieldnames = ['subject', 'date', 'message']
